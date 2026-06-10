@@ -46,7 +46,7 @@ export function Pricing({ onStart }: { onStart: () => void }) {
                 <p className="text-sm text-ink-soft">
                   {p.lbMin}–{p.lbMax} lb ({p.kgMin}–{p.kgMax} kg)
                 </p>
-                <p className="mt-3 font-display text-3xl font-semibold text-ink">
+                <p className="mt-3 font-head text-3xl font-bold text-ink">
                   ${p.priceSub ?? p.priceOnce}
                   <span className="text-base font-sans font-semibold text-ink-soft">
                     /mes

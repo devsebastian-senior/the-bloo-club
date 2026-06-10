@@ -33,7 +33,7 @@ export function About() {
           transition={{ ...spring, delay: 0.2 }}
           className="absolute -bottom-5 left-1/2 w-max -translate-x-1/2 rounded-2xl bg-ink px-5 py-2.5 text-center text-cream shadow-lift"
         >
-          <p className="font-display text-base font-semibold">
+          <p className="font-head text-base font-bold">
             {ABOUT.founderName}
           </p>
           <p className="text-xs text-cream/70">{ABOUT.founderTitle}</p>
@@ -57,7 +57,7 @@ export function About() {
           variants={popItem}
           className="font-display text-3xl font-semibold leading-tight text-ink sm:text-4xl"
         >
-          Una misión:{" "}
+          Una meta:{" "}
           <span className="relative whitespace-nowrap">
             <span className="relative z-10">{ABOUT.mission}</span>
             <span className="absolute inset-x-0 bottom-1 z-0 h-3 bg-gold/25" />
@@ -79,7 +79,7 @@ export function About() {
           className="mt-6 rounded-xl2 border-l-4 border-gold bg-white/70 p-5 shadow-soft"
         >
           <Heart size={18} className="mb-2 text-gold" fill="currentColor" />
-          <p className="font-display text-lg font-semibold leading-snug text-ink">
+          <p className="font-head text-lg font-bold leading-snug text-ink">
             {ABOUT.movement}
           </p>
         </m.blockquote>

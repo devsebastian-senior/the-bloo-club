@@ -22,8 +22,11 @@
   --color-clay: #c9663c;
   --color-line: #e8e2d8;
 
-  --font-display: "Fraunces", Georgia, serif;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  /* Exact brand fonts from theblooclub.com: Funhouse (display headlines,
+     self-hosted TTF), Archivo (sub-headings / data), Inter (body). */
+  --font-display: "Funhouse", "Archivo", ui-sans-serif, sans-serif;
+  --font-head: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --radius-xl2: 1.75rem;
 
@@ -31,6 +34,14 @@
     0 12px 32px -12px rgba(28, 27, 25, 0.18);
   --shadow-lift: 0 2px 4px rgba(28, 27, 25, 0.06),
     0 24px 48px -16px rgba(28, 27, 25, 0.24);
+}
+
+@font-face {
+  font-family: "Funhouse";
+  src: url("/fonts/funhouse.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @layer base {

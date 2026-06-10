@@ -250,7 +250,7 @@ export function StepBody({
       <div className="mb-6 rounded-2xl bg-white/70 p-5">
         <div className="mb-2 flex items-end justify-between">
           <span className="text-sm font-semibold text-ink-soft">Peso actual</span>
-          <span className="font-display text-3xl font-semibold">
+          <span className="font-head text-3xl font-bold">
             {kg.toFixed(kg < 10 ? 1 : 0)}{" "}
             <span className="text-lg text-ink-soft">kg</span>
             <span className="ml-1 text-sm font-sans font-semibold text-ink-soft/70">

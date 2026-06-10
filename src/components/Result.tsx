@@ -122,7 +122,7 @@ export function Result({
           className="rounded-xl2 bg-white/80 p-5 shadow-soft"
         >
           <p className="text-sm font-semibold text-ink-soft">Porción diaria</p>
-          <p className="font-display text-4xl font-semibold text-ink">
+          <p className="font-head text-4xl font-bold text-ink">
             <CountUp value={rec.gramsPerDay} suffix=" g" />
           </p>
           <p className="mt-1 text-sm text-ink-soft">
@@ -173,7 +173,7 @@ export function Result({
             key={g.label}
             className="rounded-xl bg-white/60 px-2 py-3 text-center"
           >
-            <p className="font-display text-xl font-semibold text-ink">
+            <p className="font-head text-xl font-bold text-ink">
               {g.value}
             </p>
             <p className="mt-0.5 text-[10px] font-semibold uppercase leading-tight text-ink-soft">

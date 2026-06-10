@@ -57,7 +57,7 @@ export function RecipeCards() {
       <div className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-2">
         {GUARANTEED.map((g) => (
           <div key={g.label} className="rounded-xl bg-white/60 px-2 py-3 text-center">
-            <p className="font-display text-xl font-semibold text-ink">{g.value}</p>
+            <p className="font-head text-xl font-bold text-ink">{g.value}</p>
             <p className="mt-0.5 text-[10px] font-semibold uppercase leading-tight text-ink-soft">
               {g.label}
             </p>

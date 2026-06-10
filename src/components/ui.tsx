@@ -142,7 +142,7 @@ export function StepHeader({
       <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-gold-deep">
         {eyebrow}
       </p>
-      <h2 className="font-display text-3xl font-semibold leading-[1.1] text-ink sm:text-4xl">
+      <h2 className="font-head text-3xl font-bold leading-[1.1] text-ink sm:text-4xl">
         {title}
       </h2>
       {hint && <p className="mt-2 text-ink-soft">{hint}</p>}

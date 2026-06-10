@@ -120,7 +120,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
             </div>
             <div className="absolute -bottom-4 -left-2 rounded-2xl bg-ink px-4 py-2.5 text-cream shadow-lift sm:-left-6">
               <p className="text-xs text-cream/70">Porción exacta</p>
-              <p className="font-display text-lg font-semibold">
+              <p className="font-head text-lg font-bold">
                 en gramos, por día 🐾
               </p>
             </div>
@@ -163,7 +163,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
           {WHY_FRESH.map((w) => (
             <div key={w.title} className="rounded-xl2 bg-white/70 p-6 shadow-soft">
               <span className="text-3xl">{w.emoji}</span>
-              <h3 className="mt-3 font-display text-xl font-semibold text-ink">
+              <h3 className="mt-3 font-head text-xl font-bold text-ink">
                 {w.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">
@@ -210,7 +210,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
       <Section id="recetas">
         <SectionTitle
           eyebrow="Nuestras recetas"
-          title="4 recetas, un solo estándar: comida real"
+          title="4 recetas, una sola regla: comida real"
           sub="Carnes USDA, vegetales frescos y superfoods. Cumple perfiles AAFCO."
         />
         <RecipeCards />
@@ -256,7 +256,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
             style={{ background: "var(--color-gold)" }}
           />
           <h2 className="relative font-display text-3xl font-semibold sm:text-4xl">
-            Su mejor vida empieza con su próximo plato
+            Su mejor vida empieza en su siguiente plato
           </h2>
           <p className="relative mx-auto mt-3 max-w-md text-cream/75">
             2 minutos. 4 preguntas. Un plan hecho exactamente para tu perro.
