@@ -56,5 +56,7 @@ export interface Recommendation {
   priceOnce: number;
   priceSub: number | null;
   productUrl: string;
+  /** Shopify cart permalink with the exact variant pre-added. */
+  checkoutUrl: string;
   reasons: string[];
 }

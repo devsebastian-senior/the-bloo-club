@@ -4,6 +4,7 @@ import type { SizeKey } from "../../types";
 import { PLANS, TRIAL, productUrl } from "../../data/plans";
 import { PHOTOS } from "../../data/content";
 import { listStagger, popItem, spring } from "../../lib/motion";
+import { track } from "../../lib/track";
 
 const SIZE_ORDER: SizeKey[] = ["xs", "s", "m", "l"];
 const PLAN_PHOTO: Record<SizeKey, string> = {
@@ -63,6 +64,7 @@ export function Pricing({ onStart }: { onStart: () => void }) {
                   href={productUrl(p.handle)}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => track("plan_card_click", { plan: p.name })}
                   className="focus-ring mt-4 inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-ink px-4 py-2 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-cream"
                 >
                   Ver plan <ArrowRight size={14} />
@@ -108,6 +110,7 @@ export function Pricing({ onStart }: { onStart: () => void }) {
           href={productUrl(TRIAL.handle)}
           target="_blank"
           rel="noreferrer"
+          onClick={() => track("trial_click", { from: "pricing" })}
           className="focus-ring shrink-0 rounded-full bg-gold px-6 py-3 text-sm font-bold text-white transition-transform hover:scale-105"
         >
           Probar por ${TRIAL.price}

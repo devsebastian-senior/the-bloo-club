@@ -7,6 +7,7 @@ import { Wizard } from "./components/Wizard";
 import { Result } from "./components/Result";
 import { Landing } from "./components/landing/Landing";
 import { spring } from "./lib/motion";
+import { track } from "./lib/track";
 
 type Overlay = "wizard" | "result" | null;
 
@@ -25,6 +26,7 @@ export default function App() {
   );
 
   const openPlan = useCallback(() => {
+    track("wizard_open");
     setOverlay("wizard");
     if (window.location.hash !== "#plan") window.location.hash = "plan";
   }, []);
@@ -106,7 +108,10 @@ export default function App() {
                     <Wizard
                       profile={profile}
                       update={update}
-                      onComplete={() => setOverlay("result")}
+                      onComplete={() => {
+                        track("wizard_complete");
+                        setOverlay("result");
+                      }}
                       onExit={close}
                     />
                   </div>

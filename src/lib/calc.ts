@@ -9,6 +9,7 @@ import type {
 import { getBreed } from "../data/breeds";
 import { RECIPES, ORDERABLE_PROTEINS } from "../data/recipes";
 import { PLANS, PUPPY_PLAN, SLEEVE_GRAMS, productUrl } from "../data/plans";
+import { mealCartUrl, type VariantProtein } from "../data/variants";
 
 /* ---------------------------------------------------------------------------
    Nutrition engine (client-side, vet-style estimates).
@@ -196,6 +197,13 @@ export function buildRecommendation(profile: DogProfile): Recommendation {
   const priceSub = isPuppy ? null : plan.priceSub;
   const url = productUrl(plan.handle);
 
+  // pickRecipe only returns orderable proteins, so the cast is safe;
+  // a blend suggestion maps to the Equal Parts variant.
+  const variantProtein: VariantProtein = blend
+    ? "mix3"
+    : (recipe as VariantProtein);
+  const checkoutUrl = mealCartUrl(size, variantProtein, isPuppy);
+
   const reasons: string[] = [reason];
   reasons.push(
     isPuppy
@@ -232,6 +240,7 @@ export function buildRecommendation(profile: DogProfile): Recommendation {
     priceOnce,
     priceSub,
     productUrl: url,
+    checkoutUrl,
     reasons,
   };
 }

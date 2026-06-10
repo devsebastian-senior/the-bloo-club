@@ -5,6 +5,7 @@ import {
   Check,
   Info,
   ExternalLink,
+  ShoppingCart,
   Sparkles,
   Snowflake,
   ShieldCheck,
@@ -12,9 +13,11 @@ import {
 } from "lucide-react";
 import type { DogProfile, Recommendation } from "../types";
 import { RECIPES, GUARANTEED } from "../data/recipes";
-import { TIER_LABEL, TIER_NOTE, TRIAL, SLEEVE_GRAMS, productUrl } from "../data/plans";
+import { TIER_LABEL, TIER_NOTE, TRIAL, SLEEVE_GRAMS } from "../data/plans";
+import { cartUrl, TRIAL_VARIANT } from "../data/variants";
 import { listStagger, popItem } from "../lib/motion";
 import { PrimaryButton, GhostButton } from "./ui";
+import { track } from "../lib/track";
 
 function CountUp({ value, suffix }: { value: number; suffix: string }) {
   const mv = useMotionValue(0);
@@ -47,6 +50,10 @@ export function Result({
   const recipe = RECIPES[rec.recipe];
   const alt = RECIPES[rec.altRecipe];
   const name = profile.dogName.trim() || "tu perro";
+
+  useEffect(() => {
+    track("plan_result", { plan: rec.planLabel, recipe: rec.recipe });
+  }, [rec.planLabel, rec.recipe]);
 
   return (
     <m.div
@@ -221,15 +228,35 @@ export function Result({
         variants={popItem}
         className="mt-6 flex flex-col items-center gap-3"
       >
-        <a href={rec.productUrl} target="_blank" rel="noreferrer">
+        <a
+          href={rec.checkoutUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() =>
+            track("checkout_click", {
+              plan: rec.planLabel,
+              recipe: rec.blend ? "mix3" : rec.recipe,
+              price: rec.priceOnce,
+            })
+          }
+        >
           <PrimaryButton>
-            Ver mi plan {rec.planLabel} <ExternalLink size={16} />
+            <ShoppingCart size={18} /> Añadir mi plan al carrito
           </PrimaryButton>
         </a>
         <a
-          href={productUrl(TRIAL.handle)}
+          href={rec.productUrl}
           target="_blank"
           rel="noreferrer"
+          className="focus-ring inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft underline decoration-2 underline-offset-2 transition-colors hover:text-ink"
+        >
+          o ver el plan {rec.planLabel} en la tienda <ExternalLink size={13} />
+        </a>
+        <a
+          href={cartUrl(TRIAL_VARIANT)}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => track("trial_click", { from: "result" })}
           className="focus-ring max-w-sm rounded-2xl border-2 border-gold/60 bg-gold/10 px-4 py-3 text-center text-sm font-semibold text-ink transition-colors hover:bg-gold/20"
         >
           🐾 ¿Probar primero? <strong>{TRIAL.name}</strong> · ${TRIAL.price} —{" "}
