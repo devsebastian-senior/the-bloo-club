@@ -89,6 +89,21 @@
   box-shadow: 0 0 0 3px var(--color-cream), 0 0 0 5px var(--color-gold);
 }
 
+/* Slogan marquee strip */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  display: inline-block;
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+
 /* Branded range slider (weight) */
 .bloo-range {
   -webkit-appearance: none;
@@ -123,7 +138,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob {
+  .blob,
+  .marquee {
     animation: none;
   }
   html {

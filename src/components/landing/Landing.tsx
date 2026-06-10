@@ -1,10 +1,11 @@
 import { m } from "framer-motion";
 import { ArrowRight, ShieldCheck, Snowflake, Truck, Star } from "lucide-react";
-import { PHOTOS, WHY_FRESH, HOW_IT_WORKS, TESTIMONIALS } from "../../data/content";
+import { PHOTOS, WHY_FRESH, HOW_IT_WORKS, TESTIMONIALS, ABOUT } from "../../data/content";
 import { spring } from "../../lib/motion";
 import { PrimaryButton } from "../ui";
 import { RecipeCards } from "./RecipeCards";
 import { Pricing } from "./Pricing";
+import { About } from "./About";
 import { FAQ } from "./FAQ";
 import { Footer } from "./Footer";
 
@@ -224,6 +225,22 @@ export function Landing({ onStart }: { onStart: () => void }) {
         />
         <Pricing onStart={onStart} />
       </Section>
+
+      {/* ========================================================== About */}
+      <Section id="nosotros">
+        <About />
+      </Section>
+
+      {/* Slogan marquee */}
+      <div className="overflow-hidden border-y border-line bg-cream-deep/60 py-3">
+        <div className="marquee whitespace-nowrap font-display text-lg font-semibold text-ink-soft">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span key={i} className="mx-6 inline-flex items-center gap-2">
+              {ABOUT.slogan} <span className="text-gold">🐾</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* ============================================================ FAQ */}
       <Section id="faq" className="max-w-3xl">

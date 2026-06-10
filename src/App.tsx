@@ -134,6 +134,7 @@ function Header({ onStart }: { onStart: () => void }) {
     { href: "#porque", label: "Por qué" },
     { href: "#recetas", label: "Recetas" },
     { href: "#planes", label: "Planes" },
+    { href: "#nosotros", label: "Nosotros" },
     { href: "#faq", label: "FAQ" },
   ];
   return (

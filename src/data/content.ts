@@ -106,3 +106,19 @@ export const FAQS = [
 ];
 
 export const INSTAGRAM = "https://www.instagram.com/theblooclub";
+
+/* Real about-us content from theblooclub.com/pages/about-us (translated). */
+export const ABOUT = {
+  founderPhoto: `${CDN}/IMG_4882.jpg?width=900`,
+  founderName: "Minerva Bustillo",
+  founderTitle: "CEO & Fundadora",
+  mission: "duplicar la esperanza de vida de los perros",
+  paragraphs: [
+    "En The Bloo Club, la familia va primero. Somos una empresa familiar y cada comida se hace a mano con amor — el mismo cuidado que le damos a nuestros propios perros en casa.",
+    "Nuestra fundadora, Minerva Bustillo, siempre ha tenido una pasión extraordinaria por los animales, especialmente los perros. Su misión es ambiciosa: duplicar la esperanza de vida de los perros a través de nutrición fresca y un estilo de vida lleno de amor y cuidado.",
+    "Cada sobre de 8 oz es una promesa: tu perro es tratado como familia. Y con nuestras Bowdanas, ese amor va más allá del plato — comodidad, confianza y estilo para que se sientan tan bien como se ven.",
+  ],
+  movement:
+    "Esto es más que comida o moda. Es un movimiento por vidas más sanas, más felices y más largas para los perros de todas partes.",
+  slogan: "Healthy meals · Cozy Bowdanas · Happy pups · Happy homes",
+};
