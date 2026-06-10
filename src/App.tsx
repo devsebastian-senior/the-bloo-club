@@ -1,169 +1,168 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
-import { ArrowRight, Clock, HeartHandshake, Leaf } from "lucide-react";
+import { X } from "lucide-react";
 import { emptyProfile, type DogProfile } from "./types";
 import { buildRecommendation } from "./lib/calc";
-import { PrimaryButton } from "./components/ui";
 import { Wizard } from "./components/Wizard";
 import { Result } from "./components/Result";
+import { Landing } from "./components/landing/Landing";
 import { spring } from "./lib/motion";
 
-type Phase = "intro" | "wizard" | "result";
+type Overlay = "wizard" | "result" | null;
 
 export default function App() {
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [overlay, setOverlay] = useState<Overlay>(
+    window.location.hash === "#plan" ? "wizard" : null
+  );
   const [profile, setProfile] = useState<DogProfile>(emptyProfile);
 
   const update = (patch: Partial<DogProfile>) =>
     setProfile((p) => ({ ...p, ...patch }));
 
   const rec = useMemo(
-    () => (phase === "result" ? buildRecommendation(profile) : null),
-    [phase, profile]
+    () => (overlay === "result" ? buildRecommendation(profile) : null),
+    [overlay, profile]
   );
+
+  const openPlan = useCallback(() => {
+    setOverlay("wizard");
+    if (window.location.hash !== "#plan") window.location.hash = "plan";
+  }, []);
+
+  const close = useCallback(() => {
+    setOverlay(null);
+    if (window.location.hash === "#plan")
+      history.replaceState(null, "", window.location.pathname);
+  }, []);
+
+  // Back button / manual hash edits keep the overlay in sync.
+  useEffect(() => {
+    const onHash = () =>
+      setOverlay(window.location.hash === "#plan" ? "wizard" : null);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // Lock page scroll while the overlay is open.
+  useEffect(() => {
+    document.body.style.overflow = overlay ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [overlay]);
 
   function restart() {
     setProfile(emptyProfile);
-    setPhase("intro");
+    setOverlay("wizard");
   }
 
   return (
     <LazyMotion features={domAnimation} strict>
-      <div className="bg-paper relative min-h-dvh overflow-hidden">
+      <div className="bg-paper relative min-h-dvh overflow-x-clip">
         {/* Ambient brand blobs */}
-      <div
-        className="blob pointer-events-none fixed -left-24 top-10 h-80 w-80 rounded-full opacity-30"
-        style={{ background: "var(--color-gold)" }}
-      />
-      <div
-        className="blob pointer-events-none fixed -right-28 bottom-0 h-96 w-96 rounded-full opacity-25"
-        style={{ background: "var(--color-bloo)", animationDelay: "-6s" }}
-      />
+        <div
+          className="blob pointer-events-none fixed -left-24 top-10 h-80 w-80 rounded-full opacity-15"
+          style={{ background: "var(--color-gold)" }}
+        />
+        <div
+          className="blob pointer-events-none fixed -right-28 bottom-0 h-96 w-96 rounded-full opacity-10"
+          style={{ background: "var(--color-bloo)", animationDelay: "-6s" }}
+        />
 
-      <Header onHome={restart} />
+        <Header onStart={openPlan} />
 
-      <main className="relative mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-5 pb-16 pt-24">
-        <AnimatePresence mode="wait">
-          {phase === "intro" && (
+        <main className="relative">
+          <Landing onStart={openPlan} />
+        </main>
+
+        {/* ============================================ Wizard / Result */}
+        <AnimatePresence>
+          {overlay && (
             <m.div
-              key="intro"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={spring}
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 overflow-y-auto bg-cream/95 backdrop-blur-sm"
             >
-              <Intro onStart={() => setPhase("wizard")} />
-            </m.div>
-          )}
+              <m.div
+                initial={{ opacity: 0, y: 32, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 32, scale: 0.98 }}
+                transition={spring}
+                className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-5 py-16"
+              >
+                <button
+                  type="button"
+                  onClick={close}
+                  aria-label="Cerrar"
+                  className="focus-ring fixed right-4 top-4 z-50 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-ink shadow-soft transition-colors hover:bg-white"
+                >
+                  <X size={18} />
+                </button>
 
-          {phase === "wizard" && (
-            <m.div
-              key="wizard"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={spring}
-              className="rounded-xl2 bg-white/40 p-5 shadow-soft ring-1 ring-line/60 backdrop-blur-sm sm:p-7"
-            >
-              <Wizard
-                profile={profile}
-                update={update}
-                onComplete={() => setPhase("result")}
-                onExit={() => setPhase("intro")}
-              />
-            </m.div>
-          )}
+                {overlay === "wizard" && (
+                  <div className="rounded-xl2 bg-white/50 p-5 shadow-soft ring-1 ring-line/60 backdrop-blur-sm sm:p-7">
+                    <Wizard
+                      profile={profile}
+                      update={update}
+                      onComplete={() => setOverlay("result")}
+                      onExit={close}
+                    />
+                  </div>
+                )}
 
-          {phase === "result" && rec && (
-            <m.div
-              key="result"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={spring}
-            >
-              <Result profile={profile} rec={rec} onRestart={restart} />
+                {overlay === "result" && rec && (
+                  <Result profile={profile} rec={rec} onRestart={restart} />
+                )}
+              </m.div>
             </m.div>
           )}
         </AnimatePresence>
-      </main>
       </div>
     </LazyMotion>
   );
 }
 
-function Header({ onHome }: { onHome: () => void }) {
+function Header({ onStart }: { onStart: () => void }) {
+  const links = [
+    { href: "#porque", label: "Por qué" },
+    { href: "#recetas", label: "Recetas" },
+    { href: "#planes", label: "Planes" },
+    { href: "#faq", label: "FAQ" },
+  ];
   return (
-    <header className="fixed inset-x-0 top-0 z-20">
-      <div className="mx-auto flex max-w-xl items-center justify-between px-5 py-4">
-        <button
-          onClick={onHome}
-          className="focus-ring flex items-center gap-2 rounded-full"
-        >
+    <header className="fixed inset-x-0 top-0 z-30 border-b border-line/60 bg-cream/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
+        <a href="#" className="focus-ring flex items-center gap-2 rounded-full">
           <img
             src="/logo.avif"
             alt="The Bloo Club"
-            className="h-10 w-10 object-contain"
+            className="h-9 w-9 object-contain"
           />
           <span className="font-display text-lg font-semibold tracking-tight">
             The Bloo Club
           </span>
+        </a>
+        <nav className="hidden items-center gap-5 text-sm font-semibold text-ink-soft md:flex">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="focus-ring rounded transition-colors hover:text-ink"
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+        <button
+          type="button"
+          onClick={onStart}
+          className="focus-ring rounded-full bg-ink px-4 py-2 text-sm font-bold text-cream transition-transform hover:scale-105"
+        >
+          Crear plan
         </button>
-        <span className="hidden text-xs font-semibold uppercase tracking-wider text-ink-soft sm:block">
-          Real food · real dogs
-        </span>
       </div>
     </header>
   );
 }
-
-function Intro({ onStart }: { onStart: () => void }) {
-  const bullets = [
-    { icon: <Clock size={16} />, text: "2 minutos" },
-    { icon: <Leaf size={16} />, text: "Porción exacta en gramos" },
-    { icon: <HeartHandshake size={16} />, text: "Receta a su medida" },
-  ];
-  return (
-    <div className="text-center">
-      <m.img
-        src="/logo.avif"
-        alt="The Bloo Club"
-        initial={{ scale: 0, rotate: -12 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ ...spring, delay: 0.05 }}
-        className="mx-auto mb-5 h-28 w-28 object-contain drop-shadow-sm"
-      />
-      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-gold-deep">
-        Real food for real dogs
-      </p>
-      <h1 className="font-display text-4xl font-semibold leading-[1.05] text-ink sm:text-5xl">
-        ¿Qué necesita comer{" "}
-        <span className="relative whitespace-nowrap">
-          <span className="relative z-10">tu perro</span>
-          <span className="absolute inset-x-0 bottom-1 z-0 h-3 bg-gold/60" />
-        </span>
-        ?
-      </h1>
-      <p className="mx-auto mt-4 max-w-md text-lg text-ink-soft">
-        Comida fresca de grado humano para el verdadero jefe de la casa. Responde
-        4 pasos y te decimos la receta, el plan y cuántos gramos darle al día.
-      </p>
-
-      <div className="mt-7">
-        <PrimaryButton onClick={onStart}>
-          Crear el plan de mi perro <ArrowRight size={18} />
-        </PrimaryButton>
-      </div>
-
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-semibold text-ink-soft">
-        {bullets.map((b) => (
-          <span key={b.text} className="inline-flex items-center gap-1.5">
-            <span className="text-sage">{b.icon}</span>
-            {b.text}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
