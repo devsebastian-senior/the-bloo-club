@@ -6,15 +6,22 @@ import { buildRecommendation } from "./lib/calc";
 import { Wizard } from "./components/Wizard";
 import { Result } from "./components/Result";
 import { Landing } from "./components/landing/Landing";
+import { Legal } from "./components/landing/Legal";
 import { spring } from "./lib/motion";
 import { track } from "./lib/track";
 
-type Overlay = "wizard" | "result" | null;
+/** "wizard" | "result" | "legal:<policyId>" */
+type Overlay = string | null;
+
+function overlayFromHash(): Overlay {
+  const h = window.location.hash;
+  if (h === "#plan") return "wizard";
+  if (h.startsWith("#legal/")) return `legal:${h.slice(7)}`;
+  return null;
+}
 
 export default function App() {
-  const [overlay, setOverlay] = useState<Overlay>(
-    window.location.hash === "#plan" ? "wizard" : null
-  );
+  const [overlay, setOverlay] = useState<Overlay>(overlayFromHash);
   const [profile, setProfile] = useState<DogProfile>(emptyProfile);
 
   const update = (patch: Partial<DogProfile>) =>
@@ -31,16 +38,20 @@ export default function App() {
     if (window.location.hash !== "#plan") window.location.hash = "plan";
   }, []);
 
+  const openLegal = useCallback((id: string) => {
+    setOverlay(`legal:${id}`);
+    window.location.hash = `legal/${id}`;
+  }, []);
+
   const close = useCallback(() => {
     setOverlay(null);
-    if (window.location.hash === "#plan")
+    if (window.location.hash)
       history.replaceState(null, "", window.location.pathname);
   }, []);
 
   // Back button / manual hash edits keep the overlay in sync.
   useEffect(() => {
-    const onHash = () =>
-      setOverlay(window.location.hash === "#plan" ? "wizard" : null);
+    const onHash = () => setOverlay(overlayFromHash());
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
@@ -74,7 +85,7 @@ export default function App() {
         <Header onStart={openPlan} />
 
         <main className="relative">
-          <Landing onStart={openPlan} />
+          <Landing onStart={openPlan} onLegal={openLegal} />
         </main>
 
         {/* ============================================ Wizard / Result */}
@@ -92,7 +103,11 @@ export default function App() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 32, scale: 0.98 }}
                 transition={spring}
-                className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-5 py-16"
+                className={`mx-auto flex min-h-dvh flex-col px-5 py-16 ${
+                  overlay.startsWith("legal:")
+                    ? "max-w-2xl justify-start"
+                    : "max-w-xl justify-center"
+                }`}
               >
                 <button
                   type="button"
@@ -119,6 +134,10 @@ export default function App() {
 
                 {overlay === "result" && rec && (
                   <Result profile={profile} rec={rec} onRestart={restart} />
+                )}
+
+                {overlay?.startsWith("legal:") && (
+                  <Legal policyId={overlay.slice(6)} onSelect={openLegal} />
                 )}
               </m.div>
             </m.div>

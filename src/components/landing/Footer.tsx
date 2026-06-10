@@ -1,18 +1,15 @@
 import { Instagram, Mail } from "lucide-react";
 import { INSTAGRAM } from "../../data/content";
 import { SITE } from "../../data/plans";
+import { POLICIES } from "../../data/legal";
 
-export function Footer() {
+export function Footer({ onLegal }: { onLegal: (id: string) => void }) {
   return (
     <footer className="border-t border-line bg-cream-deep/50">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-5 py-12 text-center sm:flex-row sm:justify-between sm:text-left">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-5 py-12 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div>
           <div className="flex items-center justify-center gap-2 sm:justify-start">
-            <img
-              src="/logo.avif"
-              alt=""
-              className="h-9 w-9 object-contain"
-            />
+            <img src="/logo.avif" alt="" className="h-9 w-9 object-contain" />
             <span className="font-display text-lg font-semibold text-ink">
               The Bloo Club
             </span>
@@ -22,6 +19,25 @@ export function Footer() {
             por vidas más largas y felices para los perros.
           </p>
         </div>
+
+        <nav aria-label="Legal" className="text-sm">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-soft/70">
+            Legal
+          </p>
+          <ul className="space-y-1.5">
+            {POLICIES.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => onLegal(p.id)}
+                  className="focus-ring font-semibold text-ink-soft transition-colors hover:text-ink"
+                >
+                  {p.title}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         <div className="flex flex-col items-center gap-2 text-sm sm:items-end">
           <a

@@ -56,7 +56,13 @@ export function SectionTitle({
   );
 }
 
-export function Landing({ onStart }: { onStart: () => void }) {
+export function Landing({
+  onStart,
+  onLegal,
+}: {
+  onStart: () => void;
+  onLegal: (id: string) => void;
+}) {
   return (
     <>
       {/* ============================================================ Hero */}
@@ -275,7 +281,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
         </div>
       </Section>
 
-      <Footer />
+      <Footer onLegal={onLegal} />
     </>
   );
 }
