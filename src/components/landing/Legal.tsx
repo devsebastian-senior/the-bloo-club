@@ -1,7 +1,55 @@
+import { Fragment } from "react";
 import { m } from "framer-motion";
 import { ExternalLink, ScrollText } from "lucide-react";
 import { POLICIES, getPolicy, LEGAL_CONTACT } from "../../data/legal";
-import { listStagger, popItem } from "../../lib/motion";
+import type { PolicyBlock } from "../../data/legal";
+import { spring } from "../../lib/motion";
+
+/** Group flat blocks into renderable chunks (heading + following content). */
+function renderBlocks(blocks: PolicyBlock[]) {
+  const out: React.ReactNode[] = [];
+  let list: string[] = [];
+
+  const flushList = (key: string) => {
+    if (!list.length) return;
+    out.push(
+      <ul key={key} className="ml-5 list-disc space-y-1.5">
+        {list.map((li) => (
+          <li key={li.slice(0, 40)} className="text-sm leading-relaxed text-ink-soft">
+            {li}
+          </li>
+        ))}
+      </ul>
+    );
+    list = [];
+  };
+
+  blocks.forEach((b, i) => {
+    if (b.t === "li") {
+      list.push(b.x);
+      return;
+    }
+    flushList(`ul-${i}`);
+    if (b.t === "h") {
+      out.push(
+        <h3
+          key={`h-${i}`}
+          className="mt-6 font-head text-base font-bold uppercase tracking-wide text-ink first:mt-0"
+        >
+          {b.x}
+        </h3>
+      );
+    } else {
+      out.push(
+        <p key={`p-${i}`} className="text-sm leading-relaxed text-ink-soft">
+          {b.x}
+        </p>
+      );
+    }
+  });
+  flushList("ul-end");
+  return out;
+}
 
 export function Legal({
   policyId,
@@ -21,6 +69,9 @@ export function Legal({
         <h2 className="mt-3 font-head text-3xl font-bold leading-tight text-ink">
           {policy.title}
         </h2>
+        <p className="mt-1 text-xs text-ink-soft">
+          Documento oficial de The Bloo Club, palabra por palabra (inglés).
+        </p>
       </div>
 
       {/* Policy switcher */}
@@ -41,50 +92,30 @@ export function Legal({
         ))}
       </div>
 
-      <m.div
+      <m.article
         key={policy.id}
-        variants={listStagger}
-        initial="hidden"
-        animate="show"
-        className="space-y-4"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={spring}
+        className="space-y-3 rounded-xl2 bg-white/75 p-6 shadow-soft sm:p-8"
       >
-        {policy.sections.map((s) => (
-          <m.section
-            key={s.h}
-            variants={popItem}
-            className="rounded-xl2 bg-white/75 p-5 shadow-soft"
-          >
-            <h3 className="font-head text-lg font-bold text-ink">{s.h}</h3>
-            {s.p.map((para) => (
-              <p
-                key={para.slice(0, 32)}
-                className="mt-2 text-sm leading-relaxed text-ink-soft"
-              >
-                {para}
-              </p>
-            ))}
-          </m.section>
+        {renderBlocks(policy.blocks).map((node, i) => (
+          <Fragment key={i}>{node}</Fragment>
         ))}
+      </m.article>
 
-        <m.div
-          variants={popItem}
-          className="rounded-xl2 border-2 border-dashed border-line p-5 text-center text-xs leading-relaxed text-ink-soft"
+      <div className="mt-4 rounded-xl2 border-2 border-dashed border-line p-5 text-center text-xs leading-relaxed text-ink-soft">
+        <a
+          href={policy.officialUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="focus-ring inline-flex items-center gap-1 font-bold text-gold-deep underline decoration-2 underline-offset-2"
         >
-          Resumen en español como cortesía. El documento oficial en inglés es el
-          que rige.{" "}
-          <a
-            href={policy.officialUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="focus-ring inline-flex items-center gap-1 font-bold text-gold-deep underline decoration-2 underline-offset-2"
-          >
-            Ver documento oficial <ExternalLink size={11} />
-          </a>
-          <br />
-          {LEGAL_CONTACT.company} · {LEGAL_CONTACT.address} ·{" "}
-          {LEGAL_CONTACT.email}
-        </m.div>
-      </m.div>
+          Ver en theblooclub.com <ExternalLink size={11} />
+        </a>
+        <br />
+        {LEGAL_CONTACT.company} · {LEGAL_CONTACT.address} · {LEGAL_CONTACT.email}
+      </div>
     </div>
   );
 }
