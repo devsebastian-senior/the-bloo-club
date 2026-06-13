@@ -159,15 +159,16 @@ function Header({ onStart }: { onStart: () => void }) {
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-line/60 bg-cream/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
-        <a href="#" className="focus-ring flex items-center gap-2 rounded-full">
+        <a
+          href="#"
+          aria-label="The Bloo Club — inicio"
+          className="focus-ring inline-flex rounded-full"
+        >
           <img
             src="/logo.avif"
             alt="The Bloo Club"
-            className="h-9 w-9 object-contain"
+            className="h-12 w-12 object-contain transition-transform hover:scale-105 sm:h-14 sm:w-14"
           />
-          <span className="font-display text-lg font-semibold tracking-tight">
-            The Bloo Club
-          </span>
         </a>
         <nav className="hidden items-center gap-5 text-sm font-semibold text-ink-soft md:flex">
           {links.map((l) => (
