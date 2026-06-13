@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { m } from "framer-motion";
-import { Search, Sparkles, AlertTriangle } from "lucide-react";
+import { AnimatePresence, m } from "framer-motion";
+import { Search, Sparkles, AlertTriangle, Info, X } from "lucide-react";
 import type { DogProfile, Allergen, MedicalKey, SizeKey } from "../types";
 import { BREEDS, getBreed } from "../data/breeds";
 import { RECIPES, ORDERABLE_PROTEINS } from "../data/recipes";
@@ -13,9 +13,49 @@ import {
   bcsInfo,
   SERIOUS_CONDITIONS,
 } from "../data/health";
-import { lifeStage } from "../lib/calc";
+import { lifeStage, tierFromBcs } from "../lib/calc";
 import { listStagger, spring } from "../lib/motion";
 import { Chip, OptionCard, StepHeader } from "./ui";
+
+/* Top-down dog silhouette whose body widens / loses its waist with the BCS. */
+function DogFigure({ bcs }: { bcs: number }) {
+  const f = (bcs - 1) / 8; // 0..1
+  const chest = 22 + f * 26;
+  const hip = 20 + f * 26;
+  const waist = chest * (0.5 + f * 0.62);
+  const cx = 70,
+    topY = 58,
+    wY = 106,
+    botY = 150;
+  const d = `M ${cx} ${topY} C ${cx + chest} ${topY + 2} ${cx + chest} ${wY - 26} ${cx + waist} ${wY} C ${cx + chest} ${wY + 26} ${cx + hip} ${botY - 8} ${cx} ${botY} C ${cx - hip} ${botY - 8} ${cx - chest} ${wY + 26} ${cx - waist} ${wY} C ${cx - chest} ${wY - 26} ${cx - chest} ${topY + 2} ${cx} ${topY} Z`;
+  const tier = tierFromBcs(bcs);
+  const color =
+    tier === "underweight" ? "clay" : tier === "weightControl" ? "gold" : "sage";
+  const stroke = `var(--color-ink)`;
+  const fill = `var(--color-${color})`;
+
+  return (
+    <svg viewBox="0 0 140 168" className="h-36 w-full" aria-hidden>
+      {/* ears */}
+      <ellipse cx="52" cy="30" rx="9" ry="13" fill={stroke} transform="rotate(-22 52 30)" />
+      <ellipse cx="88" cy="30" rx="9" ry="13" fill={stroke} transform="rotate(22 88 30)" />
+      {/* head */}
+      <circle cx="70" cy="38" r="17" fill={stroke} />
+      <circle cx="64" cy="36" r="2.4" fill="var(--color-cream)" />
+      <circle cx="76" cy="36" r="2.4" fill="var(--color-cream)" />
+      <circle cx="70" cy="44" r="3" fill="var(--color-cream)" />
+      {/* tail */}
+      <path d="M70 148 q 14 6 18 18" stroke={stroke} strokeWidth="5" fill="none" strokeLinecap="round" />
+      {/* body */}
+      <m.path d={d} animate={{ d }} transition={spring} fill={fill} fillOpacity={0.85} stroke={stroke} strokeWidth={3} />
+      {/* visible ribs when very thin */}
+      {bcs <= 3 &&
+        [76, 86, 96].map((y) => (
+          <line key={y} x1={cx - 9} y1={y} x2={cx + 9} y2={y} stroke="var(--color-ink)" strokeOpacity={0.35} strokeWidth={2} strokeLinecap="round" />
+        ))}
+    </svg>
+  );
+}
 
 type Update = (patch: Partial<DogProfile>) => void;
 const LB = 2.20462;
@@ -215,14 +255,26 @@ export function StepAge({ profile, update }: { profile: DogProfile; update: Upda
 export function StepWeight({ profile, update }: { profile: DogProfile; update: Update }) {
   const breed = getBreed(profile.breedId);
   const kg = profile.weightKg ?? breed?.typicalKg ?? 12;
+  const [goalOn, setGoalOn] = useState(profile.goalWeightKg != null);
+  const [info, setInfo] = useState(false);
   const goal = profile.goalWeightKg ?? kg;
   const bcs = bcsInfo(profile.bcs);
+
+  function toggleGoal() {
+    if (goalOn) {
+      setGoalOn(false);
+      update({ goalWeightKg: null });
+    } else {
+      setGoalOn(true);
+      update({ goalWeightKg: kg });
+    }
+  }
 
   return (
     <div>
       <StepHeader eyebrow="Paso 3 de 6" title="Peso y condición corporal" hint="Con el peso y el BCS calculamos la porción y el plan exactos." />
 
-      <div className="mb-5 rounded-2xl bg-white/70 p-5">
+      <div className="mb-4 rounded-2xl bg-white/70 p-5">
         <div className="mb-2 flex items-end justify-between">
           <span className="text-sm font-semibold text-ink-soft">Peso actual</span>
           <span className="font-display text-3xl font-semibold">
@@ -233,43 +285,107 @@ export function StepWeight({ profile, update }: { profile: DogProfile; update: U
         <input type="range" min={1} max={70} step={0.5} value={kg} onChange={(e) => update({ weightKg: parseFloat(e.target.value) })} className="bloo-range w-full" />
       </div>
 
-      <div className="mb-5 rounded-2xl bg-white/70 p-5">
-        <div className="mb-2 flex items-end justify-between">
-          <span className="text-sm font-semibold text-ink-soft">Peso meta (opcional)</span>
-          <span className="font-display text-2xl font-semibold">
-            {goal.toFixed(goal < 10 ? 1 : 0)} <span className="text-base text-ink-soft">kg</span>
-          </span>
-        </div>
-        <input type="range" min={1} max={70} step={0.5} value={goal} onChange={(e) => update({ goalWeightKg: parseFloat(e.target.value) })} className="bloo-range w-full" />
-        <p className="mt-1 text-xs text-ink-soft/80">Si quiere bajar o subir de peso, ajústalo. Si está en su peso ideal, déjalo igual.</p>
+      {/* Goal weight — off by default, revealed on toggle */}
+      <div className="mb-5 rounded-2xl bg-white/70 p-4">
+        <Toggle
+          on={goalOn}
+          onClick={toggleGoal}
+          label="¿Quiere bajar o subir de peso?"
+        />
+        <AnimatePresence initial={false}>
+          {goalOn && (
+            <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
+              <div className="mb-1 mt-4 flex items-end justify-between">
+                <span className="text-sm font-semibold text-ink-soft">Peso meta</span>
+                <span className="font-display text-2xl font-semibold">
+                  {goal.toFixed(goal < 10 ? 1 : 0)} <span className="text-base text-ink-soft">kg</span>
+                </span>
+              </div>
+              <input type="range" min={1} max={70} step={0.5} value={goal} onChange={(e) => update({ goalWeightKg: parseFloat(e.target.value) })} className="bloo-range w-full" />
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <p className="mb-2 text-sm font-bold text-ink-soft">
-        Condición corporal (BCS 1–9) · <span className="text-gold-deep">ideal 4–5</span>
-      </p>
-      <div className="flex gap-1.5">
-        {BCS_SCALE.map((b) => (
-          <button
-            key={b.score}
-            type="button"
-            onClick={() => update({ bcs: b.score })}
-            aria-label={`BCS ${b.score}: ${b.label}`}
-            className={`focus-ring relative h-11 flex-1 rounded-lg text-sm font-bold transition-colors ${
-              profile.bcs === b.score
-                ? "bg-ink text-cream"
-                : b.ideal
-                  ? "bg-sage/20 text-sage hover:bg-sage/30"
-                  : "bg-white/70 text-ink-soft hover:bg-cream-deep"
-            }`}
-          >
-            {b.score}
-          </button>
-        ))}
+      {/* BCS with a live dog figure + info */}
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-bold text-ink-soft">
+          Condición corporal · <span className="text-gold-deep">ideal 4–5</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setInfo(true)}
+          aria-label="¿Qué es la condición corporal?"
+          className="focus-ring inline-flex items-center gap-1 rounded-full bg-cream-deep px-2.5 py-1 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
+        >
+          <Info size={13} /> ¿Qué es?
+        </button>
       </div>
-      <m.div key={profile.bcs} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="mt-3 rounded-2xl bg-cream-deep p-4">
-        <span className="font-bold">{bcs.label}</span>
-        <span className="ml-2 text-sm text-ink-soft">{bcs.note}</span>
-      </m.div>
+
+      <div className="rounded-2xl bg-white/70 p-4">
+        <DogFigure bcs={profile.bcs} />
+        <m.div key={profile.bcs} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="mb-3 text-center">
+          <span className="font-bold">{bcs.label}</span>
+          <span className="ml-2 text-sm text-ink-soft">{bcs.note}</span>
+        </m.div>
+        <div className="flex gap-1.5">
+          {BCS_SCALE.map((b) => (
+            <button
+              key={b.score}
+              type="button"
+              onClick={() => update({ bcs: b.score })}
+              aria-label={`Condición ${b.score} de 9: ${b.label}`}
+              className={`focus-ring h-10 flex-1 rounded-lg text-sm font-bold transition-colors ${
+                profile.bcs === b.score
+                  ? "bg-ink text-cream"
+                  : b.ideal
+                    ? "bg-sage/20 text-sage hover:bg-sage/30"
+                    : "bg-cream-deep text-ink-soft hover:bg-line"
+              }`}
+            >
+              {b.score}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Info modal */}
+      <AnimatePresence>
+        {info && (
+          <m.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setInfo(false)}
+            className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-5 backdrop-blur-sm"
+          >
+            <m.div
+              initial={{ scale: 0.9, y: 16 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 16 }}
+              transition={spring}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-sm rounded-xl2 bg-cream p-6 shadow-lift"
+            >
+              <button type="button" onClick={() => setInfo(false)} aria-label="Cerrar" className="focus-ring absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-cream-deep text-ink">
+                <X size={16} />
+              </button>
+              <h3 className="font-head text-lg font-bold text-ink">¿Qué es la condición corporal?</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                Es una escala del 1 al 9 que mide la grasa corporal de tu perro.
+                Lo <strong>ideal es 4–5</strong>: sientes sus costillas sin verlas,
+                se le marca la cintura mirándolo desde arriba y el abdomen va
+                recogido.
+              </p>
+              <ul className="mt-3 space-y-1.5 text-sm text-ink-soft">
+                <li>🦴 <strong>1–3:</strong> muy delgado, costillas a la vista.</li>
+                <li>✅ <strong>4–5:</strong> peso ideal.</li>
+                <li>🍩 <strong>6–9:</strong> sobrepeso, cuesta sentir las costillas.</li>
+              </ul>
+            </m.div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -386,18 +502,9 @@ export function StepPrefs({ profile, update }: { profile: DogProfile; update: Up
         ))}
       </div>
 
-      <div className="mb-3 grid gap-2.5 sm:grid-cols-2">
+      <div className="grid gap-2.5 sm:grid-cols-2">
         <Toggle on={profile.picky} onClick={() => update({ picky: !profile.picky })} label="Quisquilloso (picky)" />
         <Toggle on={profile.sensitiveStomach} onClick={() => update({ sensitiveStomach: !profile.sensitiveStomach })} label="Estómago sensible" />
-      </div>
-
-      <p className="mb-2 mt-4 text-sm font-bold text-ink-soft">Comidas al día</p>
-      <div className="grid grid-cols-3 gap-2.5">
-        {[2, 3, 4].map((n) => (
-          <Chip key={n} selected={(profile.mealsPerDay ?? (lifeStage(profile.ageMonths) === "puppy" ? 3 : 2)) === n} onClick={() => update({ mealsPerDay: n })}>
-            {n} comidas
-          </Chip>
-        ))}
       </div>
     </div>
   );

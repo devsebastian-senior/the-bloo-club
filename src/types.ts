@@ -51,11 +51,11 @@ export const emptyProfile: DogProfile = {
   sizeOverride: null,
   ageMonths: null,
   sex: null,
-  neutered: true,
   weightKg: null,
   goalWeightKg: null,
   bcs: 5,
   activity: "moderate",
+  neutered: false,
   allergens: [],
   conditions: [],
   health: "",
@@ -64,7 +64,7 @@ export const emptyProfile: DogProfile = {
   picky: false,
   sensitiveStomach: false,
   goal: null,
-  mealsPerDay: null,
+  mealsPerDay: null, // null = the calculator decides by life stage
 };
 
 export interface Recommendation {
