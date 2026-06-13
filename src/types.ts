@@ -1,9 +1,20 @@
 export type SizeKey = "xs" | "s" | "m" | "l";
 export type LifeStage = "puppy" | "adult" | "senior";
-export type Activity = "low" | "normal" | "high";
-export type BodyCondition = "thin" | "ideal" | "chubby";
+export type Sex = "male" | "female";
+export type Activity = "low" | "moderate" | "high" | "working" | "senior_sedentary";
 export type Protein = "lamb" | "chicken" | "beef" | "turkey";
+/** Allergens the recipes can contain (proteins + shared ingredients). */
+export type Allergen = Protein | "egg" | "fish" | "rice" | "oils" | "grains";
+export type Goal = "lose" | "gain" | "maintain" | "digestion" | "skin";
 export type Tier = "underweight" | "balanced" | "weightControl";
+export type MedicalKey =
+  | "pancreatitis"
+  | "kidney"
+  | "liver"
+  | "diabetes"
+  | "diarrhea"
+  | "skin"
+  | "pregnancy";
 
 export interface DogProfile {
   dogName: string;
@@ -11,16 +22,27 @@ export interface DogProfile {
   /** Used only when breed is unknown / mixed. */
   sizeOverride: SizeKey | null;
   ageMonths: number | null;
-  weightKg: number | null;
-  bodyCondition: BodyCondition;
-  activity: Activity;
+  sex: Sex | null;
   neutered: boolean;
-  /** Proteins to avoid (allergy or dislike). */
-  avoid: Protein[];
-  /** Favorite protein, if any. */
-  prefer: Protein | null;
-  /** Free-text health notes (illness, vet indications, etc.). */
+  weightKg: number | null;
+  /** Target / ideal weight (kg). Drives weight-loss and gain math. */
+  goalWeightKg: number | null;
+  /** Body Condition Score, 1–9 (ideal 4–5). */
+  bcs: number;
+  activity: Activity;
+  /** Allergies / ingredients to avoid. */
+  allergens: Allergen[];
+  /** Diagnosed conditions selected from the list. */
+  conditions: MedicalKey[];
+  /** Free-text health notes. */
   health: string;
+  prefer: Protein | null;
+  dislike: Protein | null;
+  picky: boolean;
+  sensitiveStomach: boolean;
+  goal: Goal | null;
+  /** Override meals/day; null = auto by life stage. */
+  mealsPerDay: number | null;
 }
 
 export const emptyProfile: DogProfile = {
@@ -28,18 +50,28 @@ export const emptyProfile: DogProfile = {
   breedId: null,
   sizeOverride: null,
   ageMonths: null,
-  weightKg: null,
-  bodyCondition: "ideal",
-  activity: "normal",
+  sex: null,
   neutered: true,
-  avoid: [],
-  prefer: null,
+  weightKg: null,
+  goalWeightKg: null,
+  bcs: 5,
+  activity: "moderate",
+  allergens: [],
+  conditions: [],
   health: "",
+  prefer: null,
+  dislike: null,
+  picky: false,
+  sensitiveStomach: false,
+  goal: null,
+  mealsPerDay: null,
 };
 
 export interface Recommendation {
-  recipe: Protein;
-  altRecipe: Protein;
+  /** False when allergies rule out every recipe. */
+  recipeAvailable: boolean;
+  recipe: Protein | null;
+  altRecipe: Protein | null;
   /** Suggested blend variant label, when variety fits better. */
   blend: string | null;
   planLabel: string; // X-Small / Small / Medium / Large / Puppy
@@ -47,6 +79,8 @@ export interface Recommendation {
   stage: LifeStage;
   isPuppy: boolean;
   tier: Tier;
+  /** Weight (kg) the calorie math was run on (goal weight for loss/gain). */
+  calcWeightKg: number;
   gramsPerDay: number;
   mealsPerDay: number;
   gramsPerMeal: number;
@@ -56,7 +90,10 @@ export interface Recommendation {
   priceOnce: number;
   priceSub: number | null;
   productUrl: string;
-  /** Shopify cart permalink with the exact variant pre-added. */
-  checkoutUrl: string;
+  /** Shopify cart permalink; null when no recipe is available. */
+  checkoutUrl: string | null;
+  /** Serious condition → show vet-validation / support warning. */
+  medicalReview: boolean;
   reasons: string[];
+  warnings: string[];
 }

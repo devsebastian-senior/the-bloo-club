@@ -4,9 +4,23 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import type { DogProfile } from "../types";
 import { stepVariants, spring } from "../lib/motion";
 import { PrimaryButton } from "./ui";
-import { StepBreed, StepAge, StepBody, StepNotes } from "./steps";
+import {
+  StepDog,
+  StepAge,
+  StepWeight,
+  StepActivity,
+  StepHealth,
+  StepPrefs,
+} from "./steps";
 
-const STEPS = [StepBreed, StepAge, StepBody, StepNotes] as const;
+const STEPS = [
+  StepDog,
+  StepAge,
+  StepWeight,
+  StepActivity,
+  StepHealth,
+  StepPrefs,
+] as const;
 
 export function Wizard({
   profile,
@@ -24,13 +38,13 @@ export function Wizard({
 
   const valid = useMemo(() => {
     switch (index) {
-      case 0:
+      case 0: // dog: breed or size
         return profile.breedId !== null || profile.sizeOverride !== null;
-      case 1:
+      case 1: // age
         return profile.ageMonths !== null && profile.ageMonths >= 0;
-      case 2:
+      case 2: // weight
         return profile.weightKg !== null && profile.weightKg > 0;
-      default:
+      default: // activity / health / prefs are optional
         return true;
     }
   }, [index, profile]);
